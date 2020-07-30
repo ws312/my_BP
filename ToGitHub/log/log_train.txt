@@ -1,0 +1,20 @@
+Test accuracy at step 0,accuracy is: 13.05%
+Adding run metadata for50
+Test accuracy at step 100,accuracy is: 91.6%
+Adding run metadata for150
+Test accuracy at step 200,accuracy is: 93.62%
+Adding run metadata for250
+Test accuracy at step 300,accuracy is: 94.36%
+Adding run metadata for350
+Test accuracy at step 400,accuracy is: 95.18%
+Adding run metadata for450
+Test accuracy at step 500,accuracy is: 95.24%
+Adding run metadata for550
+Test accuracy at step 600,accuracy is: 95.99%
+Adding run metadata for650
+Test accuracy at step 700,accuracy is: 96.23%
+Adding run metadata for750
+Test accuracy at step 800,accuracy is: 96.36%
+Adding run metadata for850
+Test accuracy at step 900,accuracy is: 96.97%
+Adding run metadata for950

@@ -10,16 +10,27 @@ import os
 '''
 L2正则化，Dropout，
 '''
+if not os.path.exists('result'):
+    os.mkdir('result')
+if not os.path.exists("log"):
+    os.mkdir("log")
+LOG_train = open(os.path.join("log", 'log_train.txt'), 'w')  # 训练日志
+LOG_test = open(os.path.join("log", 'log_test.txt'), 'w')  # 训练日志
+def log_train(out_str):
+    LOG_train.write(out_str + '\n')
+    LOG_train.flush()  # 清空缓存区
+    print(out_str)
+def log_test(out_str):
+    LOG_test.write(out_str + '\n')
+    LOG_test.flush()  # 清空缓存区
+    print(out_str)
+
 
 class my_BP(object):
 
     path1 = r'3.png'
     path2 = r'5.png'
     path3 = r'8.png'
-    if not os.path.exists('result'):
-        os.mkdir('result')
-    if not os.path.exists("log"):
-        os.mkdir("log")
 
     def __init__(self):
         self.tf_graph = tf.Graph()
@@ -29,18 +40,6 @@ class my_BP(object):
         self.keep_prob = 0.90
         self.learning_rate = 0.001
         self.log_dir = "log" #存放日志文件路径
-        self.LOG_train = open(os.path.join(self.log_dir, 'log_train.txt'), 'w')  # 训练日志
-        self.LOG_test = open(os.path.join(self.log_dir, 'log_test.txt'), 'w')  # 测试日志
-
-    def log_train(self,out_str):
-        self.LOG_train.write(out_str + '\n')
-        self.LOG_train.flush()  # 清空缓存区
-        print(out_str)
-
-    def log_test(self,out_str):
-        self.LOG_test.write(out_str + '\n')
-        self.LOG_test.flush()  # 清空缓存区
-        print(out_str)
 
     def load_datasets(self):
         mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
@@ -139,9 +138,9 @@ class my_BP(object):
                 if i % 100 == 0:  # 每100次进行测试
                     summary, acc = sess.run([merged, accuracy], feed_dict=test_feed)  # 数据汇总、测试精度
                     test_writer.add_summary(summary, i)  # 汇总结果、循环步数写入日志
-                    self.log_train("Accuracy at step %s,accuracy is: %g%%" % (i, acc * 100))
+                    log_train("Test accuracy at step %s,accuracy is: %g%%" % (i, acc * 100))
                 else:  # 训练
-                    x_train, y_train = mnist.train.next_batch(batch_size=self.batch_size)
+                    x_train, y_train = mnist.train.next_batch(batch_size=self.batch_size) #100
                     if i % 100 == 50:
                         run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)  # 定义TF运行选项
                         run_metadata = tf.RunMetadata()  # 定义TF运行的元信息
@@ -151,7 +150,7 @@ class my_BP(object):
                         train_writer.add_summary(summary, i)
                         # 注意，这里保存模型不是为了后期使用，而是为了可视化降维后的嵌入向量
                         saver.save(sess, self.log_dir + "/model.ckpt", i)
-                        self.log_train(("Adding run metadata for"+str(i)))
+                        log_train(("Adding run metadata for"+str(i)))
                     else:
                         summary, _ = sess.run([merged, train_step], feed_dict={x: x_train, y_: y_train,keep_prob:self.keep_prob})
                         train_writer.add_summary(summary, i)
@@ -164,7 +163,7 @@ class my_BP(object):
             digit = -1  # 最终识别的0-9的数字
             out,a_2_output = sess.run([y,hid_out], feed_dict={X: X_run,keep_prob:1.0})
             rst=sess.run(tf.nn.softmax(out))
-            self.log_test('rst:{},{}'.format(rst,rst.shape)) #二维1x10
+            log_test('The output of the final model:{},{}'.format(rst,rst.shape)) #二维1x10
             max_prob=-0.1 #记录所有类别最大的概率值
             for idx in range(10):
                 if max_prob  < rst[0][idx]:
@@ -200,8 +199,8 @@ class my_BP(object):
             print('finish loading model!!!!!!!')
             # 全部测试样本精度
             test_accuracy= sess.run(accuracy, feed_dict={X: X_test, y_: y_test,keep_prob: 1.0})
-            self.log_test('测试样本精度：'+ str(test_accuracy))
-            print('单个测试样本的识别：')
+            log_test('Test accuracy of all test samples of the final model:'+ str(test_accuracy))
+            print('Identification of a single test sample:')
             # 原样本
             rst,a_2_output,digit=distinguish(X_run)
             wight_map=W_1[:,0].eval().reshape(28,28) #将第一列（所有连接到第一个隐层神经元的权值）变为28x28
@@ -236,7 +235,7 @@ class my_BP(object):
             graph = tf.get_default_graph()
             saver.restore(sess, tf.train.latest_checkpoint('log'))  # 获取最后一次训练好的模型参数
             reader = tf.train.NewCheckpointReader('log/model.ckpt-950') #模型名
-            print("\n变量名字, 数据类型, shape:")
+            print("\n variable name, data type, shape:")
             print(reader.debug_string().decode("utf-8"))
             print(reader.get_tensor('hidden_to_out/biases/Variable')) #[10]
             # tensor_name_list = [tensor.name for tensor in graph.as_graph_def().node]  # 得到当前图中所有变量的名称
@@ -250,7 +249,7 @@ if __name__=='__main__':
     BP=my_BP()
 
     #训练
-    # BP.train()
+    BP.train()
 
     #查看变量
     # BP.check()
